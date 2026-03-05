@@ -1,0 +1,374 @@
+import { useState, useRef, useEffect } from 'react'
+
+// ─── Language Content ──────────────────────────────────────────────────────────
+const CONTENT = {
+    en: {
+        welcome: "Namaste! 👋 Welcome to **WorkIndia Smart Help AI**.\n\nI can help you:\n🏠 **Book home services** — plumbers, electricians, AC repair & more\n📞 **Get contact details** of any professional\n💰 **Check service pricing**\n💼 **Find job opportunities** if you're a skilled professional\n\nWhat would you like to do today?",
+        quickPrompts: [
+            { label: '🔧 Available plumbers', value: 'Show available plumbers near me' },
+            { label: '⚡ List electricians', value: 'List electricians near me' },
+            { label: '❄️ AC technicians', value: 'Show available AC technicians' },
+            { label: '💰 Service pricing', value: 'What are the prices for all services?' },
+            { label: '🧹 Book a cleaner', value: 'Book a home cleaner' },
+            { label: '💼 I need a job', value: 'I am looking for a job' },
+        ],
+        placeholder: 'Try "Show available plumbers" or "I need a job as electrician"...',
+        clearBtn: 'Clear',
+        capabilities: ['Book Services', 'Find Jobs', 'Get Contacts'],
+        assistantTitle: 'WorkIndia Smart Help AI',
+        onlineStatus: 'Online — responds instantly',
+    },
+    hi: {
+        welcome: "नमस्ते! 👋 **वर्कइंडिया स्मार्ट हेल्प AI** में आपका स्वागत है।\n\nनमस्ते! कृपया एक ही संदेश में अपना नाम, काम, अपेक्षित वेतन और शहर बताएं।\n\nHi! I'm your Smart Help AI 🤖\nPlease tell me your name, profession, expected salary, and city in ONE single message. (e.g. 'I am Amit, Plumber, expecting 25k in Mumbai')",
+        quickPrompts: [
+            { label: '🔧 उपलब्ध प्लंबर', value: 'मेरा नाम अमित है, मैं प्लंबर हूँ, मुंबई में 25k वेतन की तलाश है' },
+            { label: '⚡ इलेक्ट्रीशियन सूची', value: 'मैं राहुल हूँ, इलेक्ट्रीशियन हूँ, दिल्ली में 20k वेतन चाहिए' },
+            { label: '❄️ AC तकनीशियन', value: 'मैं AC तकनीशियन हूँ, पुणे में काम ढूंढ रहा हूँ' },
+            { label: '💰 सेवा मूल्य', value: 'सभी सेवाओं की दरें क्या हैं?' },
+            { label: '🧹 क्लीनर बुक करें', value: 'मुझे घर के लिए क्लीनर चाहिए' },
+            { label: '💼 मुझे नौकरी चाहिए', value: 'मैं नौकरी खोज रहा हूँ' },
+        ],
+        placeholder: 'e.g. मैं राहुल हूँ, इलेक्ट्रीशियन हूँ, दिल्ली में 20k वेतन चाहिए...',
+        clearBtn: 'साफ़ करें',
+        capabilities: ['सेवाएं बुक करें', 'नौकरियां खोजें', 'संपर्क प्राप्त करें'],
+        assistantTitle: 'वर्कइंडिया स्मार्ट हेल्प AI',
+        onlineStatus: 'ऑनलाइन — तुरंत जवाब देता है',
+    },
+}
+
+// ─── Helpers ───────────────────────────────────────────────────────────────────
+const isHindiText = (text) => /[\u0900-\u097F]/.test(text)
+
+/**
+ * formatBilingual: returns Hindi response first, English below.
+ * Used when chatLanguageMode === 'bilingual'.
+ */
+function formatBilingual(englishText, profileSummary) {
+    if (profileSummary) {
+        return `✅ आपकी जानकारी मिल गई है!\n\n${profileSummary}\n\nमैं आपकी कैसे मदद कर सकता हूँ?\n\n---\n\n${englishText}`
+    }
+    const SMART_HELP_HINDI =
+        'मैं आपकी मदद के लिए यहां हूं। कृपया बताएं कि आप क्या चाहते हैं।'
+    return `${SMART_HELP_HINDI}\n\n${englishText}`
+}
+
+function extractDetails(text) {
+    const textLower = text.toLowerCase()
+
+    let fullName = null
+    let title = null
+    let salary = null
+    let city = null
+
+    // Name match
+    const nameMatch = text.match(/(?:naam|name is|i am|mera naam|naam hai|my name is)\s+([A-Za-z\u0900-\u097F]+)/i)
+    if (nameMatch) fullName = nameMatch[1]
+
+    // Job match
+    const jobs = ['plumber', 'electrician', 'driver', 'carpenter', 'painter', 'ac', 'cleaner', 'नौकरी', 'प्लंबर', 'इलेक्ट्रीशियन']
+    for (const j of jobs) {
+        if (textLower.includes(j)) { title = j; break; }
+    }
+
+    // Salary match
+    const salMatch = text.match(/(\d+k|\d+,\d+|\d{4,})/i)
+    if (salMatch) salary = salMatch[0]
+
+    // City match
+    const cities = ['mumbai', 'pune', 'delhi', 'bangalore', 'मुंबई', 'पुणे', 'दिल्ली']
+    for (const c of cities) {
+        if (textLower.includes(c)) { city = c; break; }
+    }
+
+    if (!fullName && !title && !salary && !city) return null
+
+    return { fullName, title, salary, city }
+}
+
+// ─── Sub-components ────────────────────────────────────────────────────────────
+function MessageBubble({ msg }) {
+    const isUser = msg.role === 'user'
+    return (
+        <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} animate-fade-in`}>
+            <div className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl text-sm leading-relaxed ${isUser
+                ? 'bg-primary-600 text-white rounded-br-sm'
+                : 'bg-white text-gray-800 border border-gray-200 rounded-bl-sm shadow-sm'
+                }`}>
+                <div
+                    dangerouslySetInnerHTML={{
+                        __html: msg.text
+                            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                            .replace(/\n/g, '<br>'),
+                    }}
+                />
+                <div className={`text-xs mt-1 ${isUser ? 'text-primary-100' : 'text-gray-400'}`}>
+                    {msg.time}
+                </div>
+            </div>
+        </div>
+    )
+}
+
+function TypingIndicator() {
+    return (
+        <div className="flex justify-start animate-fade-in">
+            <div className="bg-white border border-gray-200 rounded-2xl rounded-bl-sm shadow-sm px-4 py-3">
+                <div className="flex gap-1">
+                    <span className="w-2 h-2 bg-primary-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <span className="w-2 h-2 bg-primary-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <span className="w-2 h-2 bg-primary-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                </div>
+            </div>
+        </div>
+    )
+}
+
+// ─── Main Component ────────────────────────────────────────────────────────────
+export default function SmartHelp() {
+    // Sync with chatLanguageMode set by the Upgrade toggle in the sidebar
+    const [languageMode, setLanguageMode] = useState(
+        () => localStorage.getItem('chatLanguageMode') || 'english'
+    )
+
+    // Derive display language key: bilingual → 'hi', english → 'en'
+    const language = languageMode === 'bilingual' ? 'hi' : 'en'
+
+    const makeWelcomeMsg = (lang) => ({
+        id: 1,
+        role: 'bot',
+        text: CONTENT[lang].welcome,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    })
+
+    const [messages, setMessages] = useState(() => [makeWelcomeMsg(languageMode === 'bilingual' ? 'hi' : 'en')])
+    const [input, setInput] = useState('')
+    const [typing, setTyping] = useState(false)
+    const [listening, setListening] = useState(false)
+    const bottomRef = useRef(null)
+    const recognition = useRef(null)
+
+    // Listen for mode changes — 'storage' fires cross-tab, 'languageModeChanged' fires same-tab
+    useEffect(() => {
+        const handleModeChange = () => {
+            const newMode = localStorage.getItem('chatLanguageMode') || 'english'
+            setLanguageMode(newMode)
+        }
+        window.addEventListener('storage', handleModeChange)
+        window.addEventListener('languageModeChanged', handleModeChange)
+        return () => {
+            window.removeEventListener('storage', handleModeChange)
+            window.removeEventListener('languageModeChanged', handleModeChange)
+        }
+    }, [])
+
+    // Reset welcome message when mode changes (no full chat reset)
+    useEffect(() => {
+        const lang = languageMode === 'bilingual' ? 'hi' : 'en'
+        setMessages([makeWelcomeMsg(lang)])
+
+        // Setup Speech Recognition
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+        if (SpeechRecognition) {
+            recognition.current = new SpeechRecognition()
+            recognition.current.continuous = false
+            recognition.current.interimResults = false
+            recognition.current.lang = languageMode === 'bilingual' ? 'hi-IN' : 'en-US'
+
+            recognition.current.onresult = (event) => {
+                const transcript = event.results[0][0].transcript
+                setInput(prev => (prev ? `${prev} ${transcript}` : transcript))
+                setListening(false)
+            }
+
+            recognition.current.onend = () => setListening(false)
+            recognition.current.onerror = () => setListening(false)
+        }
+
+        return () => {
+            if (recognition.current) recognition.current.abort()
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [languageMode])
+
+    const getTime = () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+
+    const sendMessage = (text) => {
+        const userText = (text || input).trim()
+        if (!userText) return
+
+        // Block Hindi when English-only mode is active
+        if (languageMode === 'english' && isHindiText(userText)) {
+            setMessages(prev => [
+                ...prev,
+                {
+                    id: Date.now(),
+                    role: 'bot',
+                    text: '⚠ Please enable Upgrade to chat in Hindi.',
+                    time: getTime(),
+                },
+            ])
+            setInput('')
+            return
+        }
+
+        const userMsg = { id: Date.now(), role: 'user', text: userText, time: getTime() }
+        setMessages(prev => [...prev, userMsg])
+        setInput('')
+        setTyping(true)
+
+        setTimeout(() => {
+            let botResponse
+            const englishResponse = "I'm here to help you. Please let me know what you need assistance with."
+
+            if (languageMode === 'bilingual') {
+                const details = extractDetails(userText)
+                if (details) {
+                    const summary = `👤 नाम: ${details.fullName || 'User'}\n💼 पद: ${details.title || 'Professional'}\n💰 वेतन: ${details.salary || 'Market Rate'}\n📍 शहर: ${details.city || 'India'}`
+                    botResponse = formatBilingual(englishResponse, summary)
+                } else {
+                    botResponse = formatBilingual(englishResponse)
+                }
+            } else {
+                botResponse = englishResponse
+            }
+
+            setMessages(prev => [
+                ...prev,
+                { id: Date.now() + 1, role: 'bot', text: botResponse, time: getTime() },
+            ])
+            setTyping(false)
+        }, 900 + Math.random() * 500)
+    }
+
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault()
+            sendMessage()
+        }
+    }
+
+    const toggleListening = () => {
+        if (!recognition.current) {
+            alert("Speech recognition not supported in this browser.")
+            return
+        }
+        if (listening) {
+            recognition.current.stop()
+        } else {
+            recognition.current.lang = languageMode === 'bilingual' ? 'hi-IN' : 'en-US'
+            recognition.current.start()
+            setListening(true)
+        }
+    }
+
+    useEffect(() => {
+        bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+    }, [messages, typing])
+
+    const content = CONTENT[language]
+
+    return (
+        <div className="flex flex-col h-full max-h-[calc(100vh-8rem)] animate-fade-in">
+
+            {/* ── Chat Header ─────────────────────────────────── */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-4 flex items-center gap-4">
+                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary-600 to-accent-400 flex items-center justify-center text-xl shadow-lg">
+                    🤖
+                </div>
+                <div className="flex-1">
+                    <h2 className="font-bold text-gray-900">{content.assistantTitle}</h2>
+                    <div className="flex items-center gap-1.5">
+                        <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                        <span className="text-xs text-gray-500">{content.onlineStatus}</span>
+                    </div>
+                </div>
+
+                {/* Language mode badge (read-only — controlled by Upgrade toggle) */}
+                <span className={`px-3 py-1 text-xs font-medium rounded-lg ${languageMode === 'bilingual'
+                    ? 'bg-primary-600 text-white'
+                    : 'bg-gray-100 text-gray-600'
+                    }`}>
+                    {languageMode === 'bilingual' ? '🌐 Bilingual' : '🔤 English Only'}
+                </span>
+
+                <div className="ml-auto flex items-center gap-3">
+                    <div className="hidden sm:flex gap-2">
+                        {content.capabilities.map(cap => (
+                            <span
+                                key={cap}
+                                className="text-xs bg-primary-50 text-primary-700 px-2.5 py-1 rounded-full font-medium border border-primary-100"
+                            >
+                                {cap}
+                            </span>
+                        ))}
+                    </div>
+                    <button
+                        onClick={() => setMessages([makeWelcomeMsg(language)])}
+                        className="text-xs text-gray-400 hover:text-red-500 transition-colors font-medium"
+                    >
+                        {content.clearBtn}
+                    </button>
+                </div>
+            </div>
+
+            {/* ── Messages ─────────────────────────────────────── */}
+            <div className="flex-1 overflow-y-auto bg-gray-50 rounded-2xl border border-gray-100 p-4 space-y-4 min-h-0">
+                {messages.map(msg => (
+                    <MessageBubble key={msg.id} msg={msg} />
+                ))}
+                {typing && <TypingIndicator />}
+                <div ref={bottomRef} />
+            </div>
+
+            {/* ── Quick Prompts ────────────────────────────────── */}
+            <div className="mt-3 flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                {content.quickPrompts.map(p => (
+                    <button
+                        key={p.value}
+                        onClick={() => sendMessage(p.value)}
+                        disabled={typing}
+                        className="flex-shrink-0 text-xs bg-white border border-gray-200 text-gray-600 hover:border-primary-300 hover:text-primary-600 hover:bg-primary-50 px-3 py-2 rounded-full transition-all duration-200 font-medium disabled:opacity-50"
+                    >
+                        {p.label}
+                    </button>
+                ))}
+            </div>
+
+            {/* ── Input Area ───────────────────────────────────── */}
+            <div className="mt-3 bg-white rounded-2xl border border-gray-200 shadow-sm flex items-end gap-3 p-3 focus-within:border-primary-400 focus-within:ring-2 focus-within:ring-primary-100 transition-all duration-200">
+                <textarea
+                    value={input}
+                    onChange={e => setInput(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder={content.placeholder}
+                    rows={1}
+                    className="flex-1 resize-none outline-none text-sm text-gray-800 placeholder-gray-400 max-h-28 leading-relaxed bg-transparent"
+                />
+
+                {/* 🎤 Mic Button */}
+                <button
+                    onClick={toggleListening}
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 shadow-sm flex-shrink-0 ${listening
+                            ? 'bg-red-500 text-white animate-pulse shadow-red-200 ring-4 ring-red-100'
+                            : 'bg-gray-50 text-gray-500 hover:bg-gray-100'
+                        }`}
+                    title={listening ? "Listening..." : "Voice Input"}
+                >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                    </svg>
+                </button>
+                <button
+                    onClick={() => sendMessage()}
+                    disabled={!input.trim() || typing}
+                    className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-600 to-accent-400 flex items-center justify-center text-white hover:from-primary-700 hover:to-accent-600 transition-all duration-200 shadow-md disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
+                    aria-label="Send message"
+                >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    )
+}
