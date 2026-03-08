@@ -52,7 +52,7 @@ function ProfileOverviewCard({ profile }) {
                     </h4>
                     <div className="space-y-3">
                         {recommendations.map((r, i) => (
-                            <div key={i} className="flex items-center justify-between p-3 bg-[#f5fbee] rounded-xl border border-primary-100">
+                            <div key={i} className="flex items-center justify-between p-3 bg-[#f0f7ff] rounded-xl border border-primary-100">
                                 <div>
                                     <p className="font-semibold text-gray-900 text-sm">{r.company}</p>
                                     <p className="text-gray-500 text-xs">{r.type} · {r.salary}</p>
@@ -111,7 +111,7 @@ export default function OverviewPage() {
     const RECENT_JOBS = [
         { id: 1, title: 'Plumbing Repair', company: 'QuickFix Services', location: 'Bangalore, KA', salary: '₹299–₹799', type: 'Same Day', logo: 'P', logoColor: 'from-primary-400 to-primary-600', posted: '2 days ago', badge: 'Hot 🔥', badgeColor: 'bg-red-100 text-red-600' },
         { id: 2, title: 'Electrical Work', company: 'PowerPro Experts', location: 'Hyderabad, TS', salary: '₹499–₹1,499', type: 'On-site', logo: 'E', logoColor: 'from-yellow-400 to-orange-500', posted: '1 day ago', badge: 'Urgent', badgeColor: 'bg-orange-100 text-orange-600' },
-        { id: 3, title: 'AC Service & Repair', company: 'CoolAir Solutions', location: 'Mumbai, MH', salary: '₹599–₹1,999', type: 'On-site', logo: 'A', logoColor: 'from-orange-400 to-red-400', posted: '3 days ago', badge: 'New ✨', badgeColor: 'bg-green-100 text-green-600' },
+        { id: 3, title: 'AC Service & Repair', company: 'CoolAir Solutions', location: 'Mumbai, MH', salary: '₹599–₹1,999', type: 'On-site', logo: 'A', logoColor: 'from-orange-400 to-red-400', posted: '3 days ago', badge: 'New ✨', badgeColor: 'bg-blue-100 text-blue-600' },
         { id: 4, title: 'Home Deep Cleaning', company: 'CleanNest India', location: 'Delhi, DL', salary: '₹799–₹2,499', type: 'Scheduled', logo: 'C', logoColor: 'from-red-400 to-red-600', posted: '5 days ago', badge: 'Popular', badgeColor: 'bg-primary-100 text-primary-700' },
     ]
 

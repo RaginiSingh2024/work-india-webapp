@@ -150,6 +150,7 @@ export default function SeekerOnboardingChat({ onProfileReady }) {
     const [saving, setSaving] = useState(false)
     const [isTyping, setIsTyping] = useState(false)
     const [minimized, setMinimized] = useState(false)
+    const [selection, setSelection] = useState(null) // 'yes' | 'no' | null
 
     const [answers, setAnswers] = useState({
         fullName: '',
@@ -194,8 +195,12 @@ export default function SeekerOnboardingChat({ onProfileReady }) {
     }, [botReply, languageMode])
 
     useEffect(() => {
-        const stored = localStorage.getItem('seekerProfile')
-        const done = localStorage.getItem('seekerOnboardingCompleted')
+        const phone = localStorage.getItem('userPhone')
+        const profileKey = phone ? `seekerProfile_${phone}` : 'seekerProfile'
+        const onboardingKey = phone ? `seekerOnboardingCompleted_${phone}` : 'seekerOnboardingCompleted'
+
+        const stored = localStorage.getItem(profileKey)
+        const done = localStorage.getItem(onboardingKey)
         if (stored && done) {
             const profile = JSON.parse(stored)
             setAnswers(profile)
@@ -246,14 +251,24 @@ export default function SeekerOnboardingChat({ onProfileReady }) {
     }
 
     const confirmAccount = async (isYes) => {
+        setSelection(isYes ? 'yes' : 'no')
         setMessages(prev => [...prev, { id: Date.now(), role: 'user', text: isYes ? 'YES' : 'NO' }])
 
         if (isYes) {
             setSaving(true)
             setIsTyping(true)
             await new Promise(r => setTimeout(r, 800))
-            localStorage.setItem('seekerProfile', JSON.stringify(answers))
-            localStorage.setItem('seekerOnboardingCompleted', 'true')
+            setSelection(null)
+
+            const phone = localStorage.getItem('userPhone')
+            const profileKey = phone ? `seekerProfile_${phone}` : 'seekerProfile'
+            const onboardingKey = phone ? `seekerOnboardingCompleted_${phone}` : 'seekerOnboardingCompleted'
+            const accountKey = phone ? `accountCreated_${phone}` : 'accountCreated'
+
+            localStorage.setItem(profileKey, JSON.stringify(answers))
+            localStorage.setItem(onboardingKey, 'true')
+            localStorage.setItem(accountKey, 'true')
+            window.dispatchEvent(new Event('accountCreated'))
             setSaving(false)
             setIsTyping(false)
             setModeState('COMPLETED')
@@ -263,7 +278,7 @@ export default function SeekerOnboardingChat({ onProfileReady }) {
             const engSummary = `✅ Profile saved, ${name}!\n\nHere's your summary:\n👤 ${answers.fullName}\n💼 ${answers.title}\n💰 ${answers.expectedSalary}\n📍 ${answers.preferredLocation || answers.currentLocation}\n\nYour overview is ready below. Feel free to ask me anything anytime — I'm always here! 🚀`
 
             botReply(languageMode === 'bilingual' ? formatBilingualSeeker(engSummary) : engSummary, 600)
-        } else {
+            setSelection(null)
             setAnswers({ fullName: '', title: '', expectedSalary: '', preferredLocation: '', currentLocation: '' })
             setGuidedIdx(0)
             const hiRestart = "आइए फिर से कोशिश करते हैं। / Let's try again."
@@ -415,12 +430,12 @@ export default function SeekerOnboardingChat({ onProfileReady }) {
                         </div>
                     ) : modeState === 'CONFIRM' ? (
                         <div className="p-4 bg-white border-t border-gray-100">
-                            <div className="flex gap-2">
+                            <div className="flex gap-3">
                                 <button
                                     type="button"
                                     onClick={() => confirmAccount(true)}
                                     disabled={saving || isTyping}
-                                    className="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-2 rounded-xl"
+                                    className={`flex-1 border-2 border-primary-500 text-primary-500 hover:bg-primary-500 hover:text-white font-bold py-2 rounded-xl transition-all duration-200 disabled:opacity-50 ${selection === 'yes' ? 'bg-primary-500 text-white' : ''}`}
                                 >
                                     YES
                                 </button>
@@ -428,7 +443,7 @@ export default function SeekerOnboardingChat({ onProfileReady }) {
                                     type="button"
                                     onClick={() => confirmAccount(false)}
                                     disabled={saving || isTyping}
-                                    className="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-2 rounded-xl"
+                                    className={`flex-1 border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-bold py-2 rounded-xl transition-all duration-200 disabled:opacity-50 ${selection === 'no' ? 'bg-red-500 text-white' : ''}`}
                                 >
                                     NO
                                 </button>

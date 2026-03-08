@@ -10,6 +10,11 @@ export default function DashboardLayout() {
     const [userName, setUserName] = useState('Priya Sharma')
     const [onboardingDone, setOnboardingDone] = useState(false)
     const [languageMode, setLanguageMode] = useState(() => localStorage.getItem('chatLanguageMode') || 'english')
+    const [accountCreated, setAccountCreated] = useState(() => {
+        const phone = localStorage.getItem('userPhone')
+        return phone ? localStorage.getItem(`accountCreated_${phone}`) === 'true' : false
+    })
+    const [premiumEnabled, setPremiumEnabled] = useState(false)
 
     useEffect(() => {
         const storedRole = localStorage.getItem('userRole') || 'jobseeker'
@@ -31,12 +36,23 @@ export default function DashboardLayout() {
         return () => window.removeEventListener('storage', handleStorageChange)
     }, [])
 
-    // Re-check onboarding status when location changes (user may have just completed it)
+    // Re-check onboarding status and accountCreated when location changes
     useEffect(() => {
-        const checkDone = () => setOnboardingDone(!!localStorage.getItem('seekerOnboardingCompleted'))
+        const checkDone = () => {
+            const phone = localStorage.getItem('userPhone')
+            const onboardingKey = phone ? `seekerOnboardingCompleted_${phone}` : 'seekerOnboardingCompleted'
+            const accountKey = phone ? `accountCreated_${phone}` : 'accountCreated'
+
+            setOnboardingDone(!!localStorage.getItem(onboardingKey))
+            setAccountCreated(localStorage.getItem(accountKey) === 'true')
+        }
         checkDone() // check on route change
         window.addEventListener('storage', checkDone)
-        return () => window.removeEventListener('storage', checkDone)
+        window.addEventListener('accountCreated', checkDone)
+        return () => {
+            window.removeEventListener('storage', checkDone)
+            window.removeEventListener('accountCreated', checkDone)
+        }
     }, [location.pathname])
 
     const NAV_ITEMS = [
@@ -69,6 +85,26 @@ export default function DashboardLayout() {
     }
 
     const currentPage = NAV_ITEMS.find(item => isActive(item))?.label || 'Dashboard'
+
+    // ── FULL-SCREEN CREATE ACCOUNT (before account is created) ──────────────
+    if (!accountCreated) {
+        return (
+            <div className="min-h-screen bg-[#f0f7ff] flex items-center justify-center p-4">
+                <div className="w-full max-w-2xl">
+                    <div className="text-center mb-6">
+                        <div className="inline-flex items-center gap-2 mb-2">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-600 to-accent-400 flex items-center justify-center shadow-md">
+                                <span className="text-white font-bold text-sm">W</span>
+                            </div>
+                            <span className="text-2xl font-bold bg-gradient-to-r from-primary-700 to-primary-400 bg-clip-text text-transparent">WorkIndia</span>
+                        </div>
+                        <p className="text-gray-500 text-sm">Complete your account setup to get started</p>
+                    </div>
+                    <Outlet />
+                </div>
+            </div>
+        )
+    }
 
     return (
         <div className="flex h-screen bg-gray-50 overflow-hidden relative">
@@ -117,57 +153,34 @@ export default function DashboardLayout() {
                     <p className="text-xs text-primary-100 mb-2">Get priority access and exclusive offers.</p>
 
                     {/* Bilingual Mode Label */}
-                    <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center justify-between mb-3">
                         <span className="text-xs text-primary-100 font-medium">Hindi + English Mode</span>
                         <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${languageMode === 'bilingual'
-                            ? 'bg-green-400 text-white'
+                            ? 'bg-blue-300 text-white'
                             : 'bg-white/20 text-white'
                             }`}>
                             {languageMode === 'bilingual' ? 'ON' : 'OFF'}
                         </span>
                     </div>
 
-                    {/* Modern Toggle */}
-                    <div
-                        className="flex items-center bg-white/15 rounded-full p-1 mb-3 cursor-pointer select-none"
+                    {/* Single Upgrade Premium Toggle Button */}
+                    <button
+                        type="button"
+                        id="upgrade-premium-btn"
+                        onClick={() => {
+                            const newMode = premiumEnabled ? 'english' : 'bilingual'
+                            setPremiumEnabled(prev => !prev)
+                            localStorage.setItem('chatLanguageMode', newMode)
+                            setLanguageMode(newMode)
+                            window.dispatchEvent(new Event('languageModeChanged'))
+                        }}
+                        className={`w-full text-xs font-bold py-2 rounded-full transition-all duration-200 mb-2 ${premiumEnabled
+                            ? 'bg-blue-300 text-primary-900 hover:bg-blue-200'
+                            : 'bg-white text-primary-700 hover:bg-yellow-300 hover:text-primary-900'
+                            }`}
                         style={{ borderRadius: '999px' }}
                     >
-                        <button
-                            type="button"
-                            id="upgrade-enable-btn"
-                            onClick={() => {
-                                localStorage.setItem('chatLanguageMode', 'bilingual')
-                                setLanguageMode('bilingual')
-                                window.dispatchEvent(new Event('languageModeChanged'))
-                            }}
-                            style={{ borderRadius: '999px', flex: 1, padding: '6px 0', fontSize: '11px', fontWeight: 700, transition: 'all 0.25s', border: 'none', cursor: 'pointer' }}
-                            className={languageMode === 'bilingual'
-                                ? 'bg-white text-primary-700 shadow-sm'
-                                : 'bg-transparent text-white hover:bg-white/20'
-                            }
-                        >
-                            ✓ Enable
-                        </button>
-                        <button
-                            type="button"
-                            id="upgrade-disable-btn"
-                            onClick={() => {
-                                localStorage.setItem('chatLanguageMode', 'english')
-                                setLanguageMode('english')
-                                window.dispatchEvent(new Event('languageModeChanged'))
-                            }}
-                            style={{ borderRadius: '999px', flex: 1, padding: '6px 0', fontSize: '11px', fontWeight: 700, transition: 'all 0.25s', border: 'none', cursor: 'pointer' }}
-                            className={languageMode === 'english'
-                                ? 'bg-white text-primary-700 shadow-sm'
-                                : 'bg-transparent text-white hover:bg-white/20'
-                            }
-                        >
-                            ✕ Disable
-                        </button>
-                    </div>
-
-                    <button className="w-full bg-white text-primary-700 text-xs font-bold py-1.5 rounded-full hover:bg-yellow-300 hover:text-primary-900 transition-colors" style={{ borderRadius: '999px' }}>
-                        Upgrade Now
+                        {premiumEnabled ? '✓ Premium Enabled — Click to Disable' : '⭐ Upgrade Premium'}
                     </button>
                 </div>
 

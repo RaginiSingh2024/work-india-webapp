@@ -108,7 +108,7 @@ export default function RegisterPage() {
         return (
             <div className="min-h-screen bg-gradient-to-br from-primary-50 to-accent-400/10 flex items-center justify-center p-4">
                 <div className="card max-w-md w-full text-center py-12">
-                    <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
                         <span className="text-4xl">🎉</span>
                     </div>
                     <h2 className="text-2xl font-bold text-gray-900 mb-3">Account Created!</h2>

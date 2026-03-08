@@ -54,7 +54,7 @@ export default function LandingPage() {
 
                 <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32 text-center">
                     <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white text-sm font-medium px-4 py-2 rounded-full mb-6 animate-fade-in">
-                        <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                        <span className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
                         India's #1 Home Services Platform — 50,000+ Bookings Completed
                     </div>
 
@@ -98,13 +98,13 @@ export default function LandingPage() {
                 {/* Wave Divider */}
                 <div className="relative h-16 overflow-hidden">
                     <svg viewBox="0 0 1440 64" className="absolute bottom-0 w-full" preserveAspectRatio="none">
-                        <path d="M0,32L120,26.7C240,21,480,11,720,16C960,21,1200,43,1320,48L1440,53L1440,64L1320,64C1200,64,960,64,720,64C480,64,240,64,120,64L0,64Z" fill="#f5fbee" />
+                        <path d="M0,32L120,26.7C240,21,480,11,720,16C960,21,1200,43,1320,48L1440,53L1440,64L1320,64C1200,64,960,64,720,64C480,64,240,64,120,64L0,64Z" fill="#f0f7ff" />
                     </svg>
                 </div>
             </section>
 
             {/* Features Section */}
-            <section id="features" className="py-20 bg-[#f5fbee]">
+            <section id="features" className="py-20 bg-[#f0f7ff]">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center mb-14">
                         <span className="text-primary-600 font-semibold text-sm uppercase tracking-wider">Why GharSeva?</span>

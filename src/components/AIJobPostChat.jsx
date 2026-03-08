@@ -170,7 +170,7 @@ export default function AIJobPostChat() {
             {mode === 'published' ? (
                 <div className="space-y-6 animate-fade-in flex flex-col items-center justify-center min-h-[60vh]">
                     <div className="bg-white rounded-3xl shadow-xl border border-gray-100 w-full max-w-lg p-10 text-center">
-                        <div className="w-20 h-20 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-5 shadow-xl shadow-green-500/30 text-4xl">
+                        <div className="w-20 h-20 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-5 shadow-xl shadow-blue-500/30 text-4xl">
                             🚀
                         </div>
                         <h2 className="text-2xl font-bold text-gray-900 mb-2">Job Published!</h2>

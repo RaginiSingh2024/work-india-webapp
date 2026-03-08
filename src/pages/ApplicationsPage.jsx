@@ -7,7 +7,7 @@ const SEEKER_APPLICATIONS = [
 ]
 
 const EMPLOYER_CANDIDATES = [
-    { id: 101, candidateName: 'Rahul Kumar', role: 'Electrician', experience: '4 Years', location: 'Bangalore', status: 'New Application', permissionStatus: 'none', avatarColor: 'from-green-400 to-teal-500' },
+    { id: 101, candidateName: 'Rahul Kumar', role: 'Electrician', experience: '4 Years', location: 'Bangalore', status: 'New Application', permissionStatus: 'none', avatarColor: 'from-blue-400 to-blue-500' },
     { id: 102, candidateName: 'Sneha Gupta', role: 'Home Cleaning Worker', experience: '2 Years', location: 'Mumbai', status: 'Contacted', permissionStatus: 'pending', avatarColor: 'from-primary-300 to-accent-500' },
     { id: 103, candidateName: 'Anil Desai', role: 'Plumber', experience: '6 Years', location: 'Delhi', status: 'Interviewing', permissionStatus: 'approved', phone: '+91 98765 43210', email: 'anil@example.com', avatarColor: 'from-primary-500 to-primary-700' },
 ]
@@ -24,6 +24,10 @@ export default function ApplicationsPage() {
     const [contactStep, setContactStep] = useState(1)
     const [selectedCandidate, setSelectedCandidate] = useState(null)
     const [generatedMessage, setGeneratedMessage] = useState('')
+
+    // For test simulator
+    const [working, setWorking] = useState(false)
+    const [selection, setSelection] = useState(null) // 'yes' | 'no' | null
 
     useEffect(() => {
         const storedRole = localStorage.getItem('userRole') || 'jobseeker'
@@ -51,17 +55,23 @@ export default function ApplicationsPage() {
 
     // Mock candidate's response in real-time
     const mockCandidateResponse = (response) => {
-        setCandidates(candidates.map(c => {
-            if (c.id === selectedCandidate.id) {
-                if (response === 'yes') {
-                    return { ...c, permissionStatus: 'approved', phone: '+91 99999 00000', email: 'candidate@example.com' }
-                } else {
-                    return { ...c, permissionStatus: 'denied' }
+        setWorking(true)
+        setSelection(response) // Set selection immediately for visual feedback
+        setTimeout(() => {
+            setCandidates(candidates.map(c => {
+                if (c.id === selectedCandidate.id) {
+                    if (response === 'yes') {
+                        return { ...c, permissionStatus: 'approved', phone: '+91 99999 00000', email: 'candidate@example.com' }
+                    } else {
+                        return { ...c, permissionStatus: 'denied' }
+                    }
                 }
-            }
-            return c
-        }))
-        setShowContactModal(false)
+                return c
+            }))
+            setShowContactModal(false)
+            setWorking(false)
+            setSelection(null)
+        }, 1200)
     }
 
     return (
@@ -123,8 +133,8 @@ export default function ApplicationsPage() {
                                     <p className="text-sm font-medium text-gray-800 mb-3">"{generatedMessage}"</p>
                                     <p className="text-sm text-gray-600 mb-4">Do you allow this employer to view your phone and email?</p>
                                     <div className="flex gap-3 justify-center">
-                                        <button onClick={() => mockCandidateResponse('no')} className="btn-secondary py-1.5 px-4 text-sm border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300">No, deny</button>
-                                        <button onClick={() => mockCandidateResponse('yes')} className="bg-green-600 text-white font-semibold py-1.5 px-4 rounded-lg text-sm hover:bg-green-700 transition">Yes, allow</button>
+                                        <button onClick={() => mockCandidateResponse('no')} className={`flex-1 border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-bold py-2 rounded-xl transition-all duration-200 ${selection === 'no' ? 'bg-red-500 text-white' : ''}`}>NO, deny</button>
+                                        <button onClick={() => mockCandidateResponse('yes')} className={`flex-1 border-2 border-primary-500 text-primary-500 hover:bg-primary-500 hover:text-white font-bold py-2 rounded-xl transition-all duration-200 ${selection === 'yes' ? 'bg-primary-500 text-white' : ''}`}>YES, allow</button>
                                     </div>
                                 </div>
                                 {/* End test simulator */}
@@ -221,7 +231,7 @@ export default function ApplicationsPage() {
                                         )}
                                         {candidate.permissionStatus === 'approved' && (
                                             <div className="w-full relative">
-                                                <div className="absolute top-0 right-0 py-1 px-2 bg-green-100 text-green-700 text-xs font-bold rounded">
+                                                <div className="absolute top-0 right-0 py-1 px-2 bg-blue-100 text-blue-700 text-xs font-bold rounded">
                                                     Permission Granted ✓
                                                 </div>
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">

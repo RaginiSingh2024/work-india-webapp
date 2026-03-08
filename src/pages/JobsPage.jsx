@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 const ALL_JOBS = [
     { id: 1, title: 'Plumbing Repair & Installation', company: 'QuickFix Services', location: 'Bangalore, KA', salary: '₹299–₹799', type: 'Same Day', logo: 'P', logoColor: 'from-primary-400 to-primary-600', posted: '2d ago', badge: 'Hot 🔥', badgeColor: 'bg-red-100 text-red-600', tags: ['Pipe Repair', 'Leakage Fix', 'Tap Change'] },
     { id: 2, title: 'Electrician — Wiring & Fitting', company: 'PowerPro Experts', location: 'Hyderabad, TS', salary: '₹499–₹1,499', type: 'On-site', logo: 'E', logoColor: 'from-yellow-400 to-orange-500', posted: '1d ago', badge: 'Urgent', badgeColor: 'bg-orange-100 text-orange-600', tags: ['Wiring', 'Fan Fitting', 'Switchboard'] },
-    { id: 3, title: 'AC Service & Gas Recharge', company: 'CoolAir Solutions', location: 'Mumbai, MH', salary: '₹599–₹1,999', type: 'On-site', logo: 'A', logoColor: 'from-orange-400 to-red-400', posted: '3d ago', badge: 'New ✨', badgeColor: 'bg-green-100 text-green-600', tags: ['AC Repair', 'Gas Refill', 'Service'] },
+    { id: 3, title: 'AC Service & Gas Recharge', company: 'CoolAir Solutions', location: 'Mumbai, MH', salary: '₹599–₹1,999', type: 'On-site', logo: 'A', logoColor: 'from-orange-400 to-red-400', posted: '3d ago', badge: 'New ✨', badgeColor: 'bg-blue-100 text-blue-600', tags: ['AC Repair', 'Gas Refill', 'Service'] },
     { id: 4, title: 'Home Deep Cleaning', company: 'CleanNest India', location: 'Delhi, DL', salary: '₹799–₹2,499', type: 'Scheduled', logo: 'C', logoColor: 'from-red-400 to-red-600', posted: '5d ago', badge: 'Popular', badgeColor: 'bg-primary-100 text-primary-700', tags: ['Bathroom', 'Kitchen', 'Sofa Clean'] },
 ]
 

@@ -1,6 +1,6 @@
 export default function Footer() {
     return (
-        <footer className="bg-[#1c3209] text-gray-300">
+        <footer className="bg-[#111827] text-gray-300">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                     {/* Brand */}
@@ -18,7 +18,7 @@ export default function Footer() {
                             {['LinkedIn', 'Twitter', 'Instagram'].map(s => (
                                 <button
                                     key={s}
-                                    className="w-9 h-9 rounded-lg bg-[#2f5112] hover:bg-primary-500 flex items-center justify-center transition-colors duration-200 text-xs font-semibold"
+                                    className="w-9 h-9 rounded-lg bg-primary-800/40 hover:bg-primary-500 flex items-center justify-center transition-colors duration-200 text-xs font-semibold"
                                 >
                                     {s[0]}
                                 </button>
@@ -51,7 +51,7 @@ export default function Footer() {
                     </div>
                 </div>
 
-                <div className="border-t border-[#2f5112] mt-10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-gray-400">
+                <div className="border-t border-gray-800 mt-10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-gray-400">
                     <p>© 2026 GharSeva. All rights reserved.</p>
                     <p>Made with ❤️ for Indian households</p>
                 </div>

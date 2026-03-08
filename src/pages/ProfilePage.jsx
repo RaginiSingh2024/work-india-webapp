@@ -90,7 +90,7 @@ export default function ProfilePage() {
                                     <span>🏠 {form.education}</span>
                                 </div>
                                 <div className="flex gap-2 mt-4 justify-center sm:justify-start">
-                                    <span className="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full font-semibold">✅ Active</span>
+                                    <span className="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-semibold">✅ Active</span>
                                     <span className="text-xs bg-primary-100 text-primary-700 px-3 py-1 rounded-full font-semibold">Verified Profile</span>
                                     <span className={`text-xs px-3 py-1 rounded-full font-semibold ${role === 'provider' ? 'bg-orange-100 text-orange-700' : 'bg-primary-100 text-primary-700'}`}>
                                         {role === 'provider' ? '💼 Job Provider' : '🔍 Job Seeker'}

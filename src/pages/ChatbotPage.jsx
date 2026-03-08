@@ -559,7 +559,7 @@ export default function ChatbotPage() {
                 <div className="flex-1">
                     <h2 className="font-bold text-gray-900">WorkIndia Smart Assistant</h2>
                     <div className="flex items-center gap-1.5">
-                        <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                        <span className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
                         <span className="text-xs text-gray-500">{languageMode === 'bilingual' ? 'ऑनलाइन — तुरंत जवाब देता है' : 'Online — responds instantly'}</span>
                     </div>
                 </div>
